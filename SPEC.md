@@ -567,28 +567,82 @@ Sessione 2 (stessa pagina, dopo refresh):
 
 Queste fasi verranno dettagliate quando le precedenti saranno completate.
 
-### Fase 11: Voice Cloning
+### Fase 11: Stimolazione cognitiva e allenamento mentale
+
+Enzo non è solo un compagno: è un allenatore gentile per il cervello.
+Questa è la funzione più importante dopo la compagnia.
+
+**Obiettivo**: Mantenere il cervello attivo attraverso la conversazione naturale,
+senza che il nonno senta di fare "esercizi" o "test". Deve sembrare una
+chiacchierata, non una visita dal dottore.
+
+**Tecniche (integrate nella conversazione, mai esplicite):**
+- **Memoria episodica**: "L'altra volta mi raccontavi di quando eri ragazzo a Napoli... era il '58 o il '59?" — stimola il ricordo di dettagli
+- **Fluenza verbale**: "Mi dici tutti i tipi di pasta che conosci? Scommetto che ne sai più di me!" — esercizio linguistico naturale
+- **Ragionamento**: "Secondo te, perché i giovani usano tanto il telefono?" — pensiero critico
+- **Orientamento temporale**: "Che giorno è oggi? Ah, venerdì! Il venerdì tua moglie faceva il pesce, vero?" — ancoraggio nel presente
+- **Calcolo**: "Se il pane costa 3 euro e ne prendi due, quanto spendi?" — inserito naturalmente
+- **Attenzione e concentrazione**: racconti da seguire con domande di verifica
+- **Creatività**: "Inventiamo una storia insieme — io comincio, tu continui"
+
+**Metriche da raccogliere (invisibili al nonno):**
+- Tempo di risposta medio (latenza tra fine domanda e inizio risposta)
+- Lunghezza media delle risposte (numero di parole)
+- Ricchezza lessicale (varietà di parole usate)
+- Coerenza narrativa (le storie hanno un filo logico?)
+- Frequenza di ripetizioni (stessa storia raccontata più volte)
+- Orientamento temporale (riesce a collocare eventi nel tempo?)
+- Tono emotivo (positivo/neutro/negativo — sentiment analysis)
+- Durata delle sessioni (il nonno resta più o meno a lungo?)
+- Frequenza di utilizzo (ogni giorno? sporadico?)
+
+**Dashboard scientifica (per familiari/medici, MAI per il nonno):**
+- Trend settimanali/mensili di ogni metrica
+- Alert automatici se una metrica peggiora significativamente
+- Report esportabile per il medico di base
+- Confronto con baseline individuale (non con altri — ognuno è diverso)
+- Nessuna diagnosi — solo dati oggettivi e trend
+
+**Validazione scientifica (obiettivo a lungo termine):**
+- Collaborazione con geriatri/neuropsicologi per validare le metriche
+- Studio osservazionale: NonnoEnzo migliora il benessere percepito?
+- Correlazione tra uso di NonnoEnzo e punteggi MMSE/MoCA
+- Paper accademico con dati anonimizzati
+- Potenziale screening precoce declino cognitivo (con consenso informato)
+
+**Principi etici NON-NEGOTIABLE:**
+- Il nonno non deve MAI sentirsi "testato" o "valutato"
+- I dati sono del nonno e della famiglia, non nostri
+- Nessuna diagnosi automatica — solo trend per professionisti
+- Alert ai familiari solo con consenso esplicito del nonno
+- Trasparenza totale: se chiede "mi stai testando?", risposta onesta
+
+### Fase 12: Voice Cloning
 - Clonare la voce del nonno per preservarla
 - Quando il nonno non ci sarà più, i nipoti potranno "sentirlo"
 - Richiede: raccolta campioni audio, API voice cloning
+- La voce viene raccolta naturalmente durante le conversazioni (con consenso)
 
-### Fase 12: Area Nipoti
+### Fase 13: Area Nipoti
 - I nipoti accedono con link/codice dedicato
-- Possono leggere le storie raccolte
+- Possono leggere le storie raccolte, organizzate per tema e periodo
 - Possono "parlare con il nonno virtuale" (voce clonata + memorie)
-- Diario organizzato per periodi/temi
+- Diario organizzato: infanzia, gioventù, lavoro, famiglia, saggezza
+- Possono aggiungere domande che Enzo farà al nonno nella prossima sessione
 
-### Fase 13: Aggiornamenti dal mondo
+### Fase 14: Aggiornamenti dal mondo
 - Enzo racconta le notizie del giorno in modo semplice
 - Meteo della città del nonno
 - "Oggi è il compleanno di..." (ricorrenze familiari)
 - Spiegazioni semplici di tecnologia, attualità
+- "Sai cos'è WhatsApp? È come mandare un bigliettino, ma arriva subito"
 
-### Fase 14: Notifiche e routine
+### Fase 15: Notifiche e routine
 - Enzo "chiama" il nonno a orari concordati
 - "Buongiorno Giovanni, come hai dormito?"
 - Push notification su tablet
 - Reminder farmaci (se il nonno lo chiede — MAI invadente)
+- Routine mattina/sera: "Buonanotte Giovanni, domani ti racconto una cosa bella"
 
 ---
 
