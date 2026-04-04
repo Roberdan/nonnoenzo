@@ -7,7 +7,7 @@ import {
   getCompagnoConfig,
   SESSION_CONFIG,
   type Compagno,
-} from "@/lib/enzo";
+} from "@/lib/compagno";
 
 export type ConnectionState = "idle" | "ringing" | "connecting" | "connected" | "error";
 
@@ -193,7 +193,7 @@ export function useVoice() {
         cleanup();
         const msg = err instanceof Error ? err.message : "Errore sconosciuto";
         if (msg.includes("Permission denied") || msg.includes("NotAllowedError")) {
-          setError("Per parlare con Enzo, devi permettere l'uso del microfono.");
+          setError("Per parlare con Bruno, devi permettere l'uso del microfono.");
         } else {
           setError(msg);
         }
@@ -235,6 +235,11 @@ export function useVoice() {
         case "conversation.item.input_audio_transcription.completed": {
           const text = (msg as { transcript?: string }).transcript?.trim();
           if (text) setTranscript((prev) => [...prev, { role: "user", text }]);
+          break;
+        }
+
+        case "conversation.item.input_audio_transcription.failed": {
+          console.warn("[voice] Transcript failed, speech was detected but not transcribed");
           break;
         }
 

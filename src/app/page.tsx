@@ -2,12 +2,12 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useVoice, type ConnectionState } from "@/hooks/use-voice";
-import type { Compagno } from "@/lib/enzo";
+import type { Compagno } from "@/lib/compagno";
 
 export default function Home() {
   const [nome, setNome] = useState("");
   const [phase, setPhase] = useState<"nome" | "chiamata">("nome");
-  const [compagno, setCompagno] = useState<Compagno>("enzo");
+  const [compagno, setCompagno] = useState<Compagno>("bruno");
   const voice = useVoice();
   const transcriptEndRef = useRef<HTMLDivElement>(null);
   const ringAudioRef = useRef<AudioContext | null>(null);
@@ -89,27 +89,27 @@ export default function Home() {
           className="w-full text-center text-3xl py-5 px-6 rounded-2xl border-3 border-gray-300 
                      focus:border-blue-500 focus:outline-none bg-white"
           onKeyDown={(e) => {
-            if (e.key === "Enter" && nome.trim()) handleChiama("enzo");
+            if (e.key === "Enter" && nome.trim()) handleChiama("bruno");
           }}
         />
 
         {nome.trim() && (
           <div className="flex flex-col gap-4 w-full">
             <button
-              onClick={() => handleChiama("enzo")}
+              onClick={() => handleChiama("bruno")}
               className="w-full py-6 text-3xl font-bold text-white rounded-2xl
                          bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all
                          shadow-lg hover:shadow-xl"
             >
-              📞 Chiama Enzo
+              📞 Chiama Bruno
             </button>
             <button
-              onClick={() => handleChiama("enza")}
+              onClick={() => handleChiama("rita")}
               className="w-full py-6 text-3xl font-bold text-white rounded-2xl
                          bg-pink-500 hover:bg-pink-600 active:scale-95 transition-all
                          shadow-lg hover:shadow-xl"
             >
-              📞 Chiama Enza
+              📞 Chiama Rita
             </button>
           </div>
         )}
@@ -122,7 +122,7 @@ export default function Home() {
   }
 
   // ── Schermata: Telefonata in corso ──
-  const compagnoNome = compagno === "enzo" ? "Enzo" : "Enza";
+  const compagnoNome = compagno === "bruno" ? "Bruno" : "Rita";
 
   return (
     <main className="flex flex-col items-center w-full max-w-lg min-h-screen py-8">
