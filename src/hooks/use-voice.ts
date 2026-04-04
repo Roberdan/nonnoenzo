@@ -66,13 +66,14 @@ export function useVoice() {
       setConnectionState("ringing");
 
       try {
-        // Fetch server config + ephemeral token + mic in parallel
-        const [tokenRes, configRes, micStream] = await Promise.all([
+        // Fetch server config + ephemeral token + mic + memories in parallel
+        const [tokenRes, configRes, micStream, memoriaRes] = await Promise.all([
           fetch("/api/realtime/ephemeral-token", { method: "POST" }),
           fetch("/api/realtime/token"),
           navigator.mediaDevices.getUserMedia({
             audio: { echoCancellation: true, noiseSuppression: true },
           }),
+          fetch("/api/memoria").then(r => r.ok ? r.json() : { memorie: [], conversazioni: [] }).catch(() => ({ memorie: [], conversazioni: [] })),
         ]);
 
         if (!tokenRes.ok) throw new Error("Impossibile ottenere il token vocale");
@@ -109,12 +110,27 @@ export function useVoice() {
 
         // Data channel events
         dc.onopen = () => {
-          // Send session config
+          // Build memory context
+          let memoryBlock = "";
+          if (memoriaRes.memorie?.length > 0 || memoriaRes.conversazioni?.length > 0) {
+            memoryBlock = "\n\nCOSE CHE SAI GIÀ DI " + nome.toUpperCase() + " (dalle chiacchierate passate):\n";
+            for (const m of memoriaRes.memorie || []) {
+              memoryBlock += `- ${m.chiave}: ${m.valore}\n`;
+            }
+            if (memoriaRes.conversazioni?.length > 0) {
+              memoryBlock += "\nUltime chiacchierate:\n";
+              for (const c of memoriaRes.conversazioni) {
+                memoryBlock += `- ${c.riassunto}\n`;
+              }
+            }
+            memoryBlock += "\nUsa queste informazioni NATURALMENTE nella conversazione. Non ripetere domande a cui hai già avuto risposta. Non dire 'mi hai detto che...' — fai come se te lo ricordassi da solo.\n";
+          }
+
           const sessionUpdate = {
             type: "session.update",
             session: {
               type: "realtime",
-              instructions: buildSystemPrompt(config.nome, nome),
+              instructions: buildSystemPrompt(config.nome, nome) + memoryBlock,
               audio: {
                 output: { voice: config.voice },
                 input: {
