@@ -21,6 +21,8 @@ export default function Home() {
   const voice = useVoice();
   const transcriptEndRef = useRef<HTMLDivElement>(null);
   const ringAudioRef = useRef<AudioContext | null>(null);
+  const [callDuration, setCallDuration] = useState(0);
+  const callTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     const saved = getCookie("nonnoenzo-nome");
@@ -34,6 +36,20 @@ export default function Home() {
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [voice.transcript]);
+
+  // Call duration timer
+  useEffect(() => {
+    if (voice.connectionState === "connected") {
+      setCallDuration(0);
+      callTimerRef.current = setInterval(() => setCallDuration((d) => d + 1), 1000);
+    } else {
+      if (callTimerRef.current) {
+        clearInterval(callTimerRef.current);
+        callTimerRef.current = null;
+      }
+    }
+    return () => { if (callTimerRef.current) clearInterval(callTimerRef.current); };
+  }, [voice.connectionState]);
 
   const playRing = useCallback(async () => {
     try {
@@ -86,7 +102,6 @@ export default function Home() {
 
   const handleRiaggancia = async () => {
     stopRing();
-    // Save transcript to DB before disconnecting
     if (voice.transcript.length > 0) {
       try {
         await fetch("/api/conversazioni", {
@@ -100,19 +115,23 @@ export default function Home() {
             })),
           }),
         });
-      } catch {
-        // Non-blocking — don't fail the hang up
-      }
+      } catch { /* non-blocking */ }
     }
     voice.disconnect();
     setPhase("home");
+  };
+
+  const formatDuration = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m}:${sec.toString().padStart(2, "0")}`;
   };
 
   // ── Schermata 1: Come ti chiami? ──
   if (phase === "nome" && !nomeConfermato) {
     return (
       <main className="flex flex-col items-center justify-center gap-8 w-full max-w-md text-center min-h-screen px-6">
-        <div className="text-6xl mb-2">👋</div>
+        <div className="text-7xl mb-2">👋</div>
         <h1 className="text-4xl font-bold leading-tight">
           Ciao!<br />Come ti chiami?
         </h1>
@@ -122,8 +141,11 @@ export default function Home() {
           onChange={(e) => setNome(e.target.value)}
           placeholder="Il tuo nome..."
           autoFocus
+          enterKeyHint="done"
+          autoComplete="given-name"
           className="w-full text-center text-3xl py-5 px-6 rounded-2xl border-3 border-gray-300 
                      focus:border-blue-500 focus:outline-none bg-white"
+          style={{ minHeight: "64px" }}
           onKeyDown={(e) => { if (e.key === "Enter") handleConfermaNome(); }}
         />
         {nome.trim() && (
@@ -131,6 +153,7 @@ export default function Home() {
             onClick={handleConfermaNome}
             className="w-full py-5 text-2xl font-bold text-white rounded-2xl
                        bg-green-600 hover:bg-green-700 active:scale-95 transition-all shadow-lg"
+            style={{ minHeight: "64px" }}
           >
             ✅ Sono {nome.trim()}
           </button>
@@ -139,7 +162,7 @@ export default function Home() {
     );
   }
 
-  // ── Schermata 2: Home — chiama Marcello ──
+  // ── Schermata 2: Home ──
   if (phase === "home") {
     return (
       <main className="flex flex-col items-center justify-center gap-8 w-full max-w-md text-center min-h-screen px-6">
@@ -147,20 +170,15 @@ export default function Home() {
 
         <button
           onClick={handleChiama}
-          className="w-full flex items-center gap-5 p-6 rounded-2xl bg-white border-2 border-gray-200
-                     hover:border-green-400 hover:bg-green-50 active:scale-95 transition-all shadow-lg"
+          className="w-64 h-64 rounded-full bg-green-500 hover:bg-green-600 active:scale-90
+                     text-white shadow-2xl transition-all flex flex-col items-center justify-center"
         >
-          <span className="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center text-6xl shrink-0">
-            👴
-          </span>
-          <div className="text-left flex-1">
-            <p className="text-3xl font-bold text-gray-900">Marcello</p>
-            <p className="text-lg text-gray-500">Ex maestro marchigiano, 72 anni</p>
-          </div>
-          <span className="text-5xl">📞</span>
+          <span className="text-7xl mb-2">📞</span>
+          <span className="text-2xl font-bold">Chiama</span>
+          <span className="text-2xl font-bold">Marcello</span>
         </button>
 
-        <p className="text-lg text-gray-400">Premi per chiamare</p>
+        <p className="text-lg text-gray-400 mt-2">Premi il bottone verde</p>
 
         {voice.error && (
           <p className="text-red-600 text-xl mt-2">{voice.error}</p>
@@ -169,14 +187,19 @@ export default function Home() {
     );
   }
 
-  // ── Schermata 3: Telefonata in corso ──
+  // ── Schermata 3: In chiamata ──
   const isRinging = voice.connectionState === "ringing" || voice.connectionState === "connecting";
+  const isConnected = voice.connectionState === "connected";
 
   return (
-    <main className="flex flex-col items-center w-full max-w-md min-h-screen px-6 py-8">
+    <main className="flex flex-col items-center w-full max-w-md min-h-screen px-6 py-6">
+      {/* Header */}
       <div className="text-center mb-4">
-        <div className={`text-8xl mb-3 ${voice.isSpeaking ? "animate-bounce" : ""}`}>👴</div>
-        <h2 className="text-4xl font-bold">Marcello</h2>
+        <div className={`text-7xl mb-2 ${voice.isSpeaking ? "animate-bounce" : ""}`}>👴</div>
+        <h2 className="text-3xl font-bold">Marcello</h2>
+        {isConnected && (
+          <p className="text-xl text-gray-400 mt-1 font-mono">{formatDuration(callDuration)}</p>
+        )}
         <CallStatus
           state={voice.connectionState}
           isSpeaking={voice.isSpeaking}
@@ -184,7 +207,8 @@ export default function Home() {
         />
       </div>
 
-      <div className="flex-1 w-full overflow-y-auto mb-6 space-y-3 min-h-[150px] max-h-[45vh]">
+      {/* Transcript */}
+      <div className="flex-1 w-full overflow-y-auto mb-4 space-y-3 min-h-[120px] max-h-[40vh]">
         {voice.transcript.map((entry, i) => (
           <div key={i} className={`flex ${entry.role === "user" ? "justify-end" : "justify-start"}`}>
             <div
@@ -202,13 +226,15 @@ export default function Home() {
         <div ref={transcriptEndRef} />
       </div>
 
+      {/* Hang up button */}
       <button
         onClick={handleRiaggancia}
-        className={`w-24 h-24 rounded-full shadow-2xl transition-all flex items-center justify-center
+        className={`w-28 h-28 rounded-full shadow-2xl transition-all flex items-center justify-center
                     ${isRinging ? "bg-gray-400" : "bg-red-600 hover:bg-red-700"} active:scale-90`}
         aria-label="Riaggancia"
+        style={{ minWidth: "112px", minHeight: "112px" }}
       >
-        <svg viewBox="0 0 24 24" fill="white" className="w-12 h-12 rotate-[135deg]">
+        <svg viewBox="0 0 24 24" fill="white" className="w-14 h-14 rotate-[135deg]">
           <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
         </svg>
       </button>
