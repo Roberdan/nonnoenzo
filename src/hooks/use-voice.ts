@@ -218,18 +218,17 @@ export function useVoice() {
           micStream.getTracks().forEach((t) => (t.enabled = true));
           setConnectionState("connected");
 
-          // Send greeting as conversation item + trigger response
+          // Kick off the conversation with a natural prompt
           const greeting = buildGreeting(compagnoNome, nonnoNome);
           dc.send(JSON.stringify({
             type: "conversation.item.create",
             item: {
               type: "message",
               role: "user",
-              content: [{ type: "input_text", text: `[Il nonno/la nonna si è appena collegato. Si chiama ${nonnoNome}. Salutalo calorosamente.]` }],
+              content: [{ type: "input_text", text: `[${nonnoNome} ti sta chiamando al telefono. Rispondi come faresti con un vecchio amico. Digli qualcosa tipo: "${greeting}" — ma con parole tue, non ripetere mai lo stesso saluto.]` }],
             },
           }));
           dc.send(JSON.stringify({ type: "response.create" }));
-          void greeting; // greeting text used for UX, actual voice comes from Azure
           break;
 
         case "conversation.item.input_audio_transcription.completed": {
