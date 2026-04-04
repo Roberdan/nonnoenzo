@@ -4,25 +4,44 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useVoice, type ConnectionState } from "@/hooks/use-voice";
 import type { Compagno } from "@/lib/compagno";
 
+function getCookie(name: string): string | null {
+  const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+  return match ? decodeURIComponent(match[2]) : null;
+}
+
+function setCookie(name: string, value: string, days: number) {
+  const d = new Date();
+  d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+  document.cookie = `${name}=${encodeURIComponent(value)};expires=${d.toUTCString()};path=/;SameSite=Lax`;
+}
+
 export default function Home() {
   const [nome, setNome] = useState("");
-  const [phase, setPhase] = useState<"nome" | "chiamata">("nome");
+  const [nomeConfermato, setNomeConfermato] = useState(false);
+  const [phase, setPhase] = useState<"nome" | "home" | "chiamata">("nome");
   const [compagno, setCompagno] = useState<Compagno>("bruno");
   const voice = useVoice();
   const transcriptEndRef = useRef<HTMLDivElement>(null);
   const ringAudioRef = useRef<AudioContext | null>(null);
 
-  // Auto-scroll transcript
+  // Check cookie on mount
+  useEffect(() => {
+    const saved = getCookie("nonnoenzo-nome");
+    if (saved) {
+      setNome(saved);
+      setNomeConfermato(true);
+      setPhase("home");
+    }
+  }, []);
+
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [voice.transcript]);
 
-  // Ring sound effect — 3 squilli come un telefono vero
   const playRing = useCallback(async () => {
     try {
       const ctx = new AudioContext();
       ringAudioRef.current = ctx;
-
       for (let i = 0; i < 3; i++) {
         const osc1 = ctx.createOscillator();
         const osc2 = ctx.createOscillator();
@@ -33,16 +52,13 @@ export default function Home() {
         osc1.connect(gain);
         osc2.connect(gain);
         gain.connect(ctx.destination);
-
-        const startTime = ctx.currentTime + i * 2.5;
-        osc1.start(startTime);
-        osc2.start(startTime);
-        osc1.stop(startTime + 1.5);
-        osc2.stop(startTime + 1.5);
+        const t = ctx.currentTime + i * 2.5;
+        osc1.start(t);
+        osc2.start(t);
+        osc1.stop(t + 1.5);
+        osc2.stop(t + 1.5);
       }
-    } catch {
-      // Audio not available, that's ok
-    }
+    } catch { /* ok */ }
   }, []);
 
   const stopRing = useCallback(() => {
@@ -52,12 +68,18 @@ export default function Home() {
     }
   }, []);
 
-  // Stop ring when connected or error
   useEffect(() => {
     if (voice.connectionState === "connected" || voice.connectionState === "error") {
       stopRing();
     }
   }, [voice.connectionState, stopRing]);
+
+  const handleConfermaNome = () => {
+    if (!nome.trim()) return;
+    setCookie("nonnoenzo-nome", nome.trim(), 365);
+    setNomeConfermato(true);
+    setPhase("home");
+  };
 
   const handleChiama = async (chi: Compagno) => {
     setCompagno(chi);
@@ -69,13 +91,14 @@ export default function Home() {
   const handleRiaggancia = () => {
     stopRing();
     voice.disconnect();
-    setPhase("nome");
+    setPhase("home");
   };
 
-  // ── Schermata: Inserisci il nome ──
-  if (phase === "nome") {
+  // ── Schermata 1: Come ti chiami? (solo prima volta) ──
+  if (phase === "nome" && !nomeConfermato) {
     return (
-      <main className="flex flex-col items-center gap-8 w-full max-w-lg text-center">
+      <main className="flex flex-col items-center justify-center gap-8 w-full max-w-md text-center min-h-screen px-6">
+        <div className="text-6xl mb-2">👋</div>
         <h1 className="text-4xl font-bold leading-tight">
           Ciao!<br />Come ti chiami?
         </h1>
@@ -84,54 +107,90 @@ export default function Home() {
           type="text"
           value={nome}
           onChange={(e) => setNome(e.target.value)}
-          placeholder="Scrivi il tuo nome..."
+          placeholder="Il tuo nome..."
           autoFocus
           className="w-full text-center text-3xl py-5 px-6 rounded-2xl border-3 border-gray-300 
                      focus:border-blue-500 focus:outline-none bg-white"
           onKeyDown={(e) => {
-            if (e.key === "Enter" && nome.trim()) handleChiama("bruno");
+            if (e.key === "Enter") handleConfermaNome();
           }}
         />
 
         {nome.trim() && (
-          <div className="flex flex-col gap-4 w-full">
-            <button
-              onClick={() => handleChiama("bruno")}
-              className="w-full py-6 text-3xl font-bold text-white rounded-2xl
-                         bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all
-                         shadow-lg hover:shadow-xl"
-            >
-              📞 Chiama Bruno
-            </button>
-            <button
-              onClick={() => handleChiama("rita")}
-              className="w-full py-6 text-3xl font-bold text-white rounded-2xl
-                         bg-pink-500 hover:bg-pink-600 active:scale-95 transition-all
-                         shadow-lg hover:shadow-xl"
-            >
-              📞 Chiama Rita
-            </button>
-          </div>
-        )}
-
-        {voice.error && (
-          <p className="text-red-600 text-xl mt-4">{voice.error}</p>
+          <button
+            onClick={handleConfermaNome}
+            className="w-full py-5 text-2xl font-bold text-white rounded-2xl
+                       bg-green-600 hover:bg-green-700 active:scale-95 transition-all shadow-lg"
+          >
+            ✅ Sono {nome.trim()}
+          </button>
         )}
       </main>
     );
   }
 
-  // ── Schermata: Telefonata in corso ──
+  // ── Schermata 2: Home — chi vuoi chiamare? ──
+  if (phase === "home") {
+    return (
+      <main className="flex flex-col items-center justify-center gap-6 w-full max-w-md text-center min-h-screen px-6">
+        <p className="text-2xl text-gray-500">Ciao {nome}!</p>
+        <h1 className="text-3xl font-bold">Chi vuoi chiamare?</h1>
+
+        {/* Bruno */}
+        <button
+          onClick={() => handleChiama("bruno")}
+          className="w-full flex items-center gap-5 p-5 rounded-2xl bg-white border-2 border-gray-200
+                     hover:border-blue-400 hover:bg-blue-50 active:scale-95 transition-all shadow-md"
+        >
+          <span className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center text-5xl shrink-0">
+            👴
+          </span>
+          <div className="text-left">
+            <p className="text-2xl font-bold text-gray-900">Bruno</p>
+            <p className="text-lg text-gray-500">Ex maestro toscano, 72 anni</p>
+          </div>
+          <span className="ml-auto text-4xl">📞</span>
+        </button>
+
+        {/* Rita */}
+        <button
+          onClick={() => handleChiama("rita")}
+          className="w-full flex items-center gap-5 p-5 rounded-2xl bg-white border-2 border-gray-200
+                     hover:border-pink-400 hover:bg-pink-50 active:scale-95 transition-all shadow-md"
+        >
+          <span className="w-20 h-20 rounded-full bg-pink-100 flex items-center justify-center text-5xl shrink-0">
+            👵
+          </span>
+          <div className="text-left">
+            <p className="text-2xl font-bold text-gray-900">Rita</p>
+            <p className="text-lg text-gray-500">Ex infermiera bergamasca, 69 anni</p>
+          </div>
+          <span className="ml-auto text-4xl">📞</span>
+        </button>
+
+        <p className="text-base text-gray-400 mt-4">
+          Premi sulla cornetta per chiamare
+        </p>
+
+        {voice.error && (
+          <p className="text-red-600 text-xl mt-2">{voice.error}</p>
+        )}
+      </main>
+    );
+  }
+
+  // ── Schermata 3: Telefonata in corso ──
   const compagnoNome = compagno === "bruno" ? "Bruno" : "Rita";
+  const isRinging = voice.connectionState === "ringing" || voice.connectionState === "connecting";
 
   return (
-    <main className="flex flex-col items-center w-full max-w-lg min-h-screen py-8">
-      {/* Header chiamata */}
-      <div className="text-center mb-6">
-        <p className="text-2xl text-gray-500">
-          {voice.connectionState === "connected" ? "In chiamata con" : "Sto chiamando"}
-        </p>
-        <h2 className="text-5xl font-bold mt-1">{compagnoNome}</h2>
+    <main className="flex flex-col items-center w-full max-w-md min-h-screen px-6 py-8">
+      {/* Avatar + stato */}
+      <div className="text-center mb-4">
+        <div className={`text-8xl mb-3 ${voice.isSpeaking ? "animate-bounce" : ""}`}>
+          {compagno === "bruno" ? "👴" : "👵"}
+        </div>
+        <h2 className="text-4xl font-bold">{compagnoNome}</h2>
         <CallStatus
           state={voice.connectionState}
           isSpeaking={voice.isSpeaking}
@@ -140,14 +199,14 @@ export default function Home() {
       </div>
 
       {/* Trascrizione */}
-      <div className="flex-1 w-full overflow-y-auto mb-6 space-y-4 min-h-[200px] max-h-[50vh]">
+      <div className="flex-1 w-full overflow-y-auto mb-6 space-y-3 min-h-[150px] max-h-[45vh]">
         {voice.transcript.map((entry, i) => (
           <div key={i} className={`flex ${entry.role === "user" ? "justify-end" : "justify-start"}`}>
             <div
-              className={`max-w-[85%] px-5 py-3 rounded-2xl text-xl leading-relaxed ${
+              className={`max-w-[85%] px-4 py-3 rounded-2xl text-xl leading-relaxed ${
                 entry.role === "user"
-                  ? "bg-blue-100 text-blue-900"
-                  : "bg-gray-100 text-gray-900"
+                  ? "bg-blue-100 text-blue-900 rounded-br-sm"
+                  : "bg-gray-100 text-gray-900 rounded-bl-sm"
               }`}
             >
               {entry.role === "assistant" && (
@@ -160,16 +219,23 @@ export default function Home() {
         <div ref={transcriptEndRef} />
       </div>
 
-      {/* Bottone riaggancia */}
+      {/* Bottone riaggancia — come un telefono vero */}
       <button
         onClick={handleRiaggancia}
-        className="w-40 h-40 rounded-full bg-red-600 hover:bg-red-700 active:scale-90
-                   text-white text-xl font-bold shadow-2xl transition-all
-                   flex flex-col items-center justify-center mb-8"
+        className={`w-24 h-24 rounded-full shadow-2xl transition-all flex items-center justify-center
+                    ${isRinging
+                      ? "bg-gray-400 active:scale-90"
+                      : "bg-red-600 hover:bg-red-700 active:scale-90"
+                    }`}
+        aria-label="Riaggancia"
       >
-        <span className="text-4xl">📵</span>
-        Chiudi
+        <svg viewBox="0 0 24 24" fill="white" className="w-12 h-12 rotate-[135deg]">
+          <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+        </svg>
       </button>
+      <p className="text-lg text-gray-400 mt-3">
+        {isRinging ? "Sta squillando..." : "Premi per riagganciare"}
+      </p>
 
       {voice.error && (
         <p className="text-red-600 text-xl mt-4">{voice.error}</p>
@@ -188,46 +254,22 @@ function CallStatus({
   isListening: boolean;
 }) {
   if (state === "ringing") {
-    return (
-      <p className="text-xl text-gray-400 mt-3 animate-pulse">
-        🔔 Sta squillando...
-      </p>
-    );
+    return <p className="text-xl text-gray-400 mt-2 animate-pulse">🔔 Sta squillando...</p>;
   }
   if (state === "connecting") {
-    return (
-      <p className="text-xl text-yellow-600 mt-3 animate-pulse">
-        Connessione in corso...
-      </p>
-    );
+    return <p className="text-xl text-yellow-600 mt-2 animate-pulse">Connessione...</p>;
   }
   if (state === "error") {
-    return (
-      <p className="text-xl text-red-600 mt-3">
-        Errore di connessione
-      </p>
-    );
+    return <p className="text-xl text-red-600 mt-2">Errore di connessione</p>;
   }
   if (state === "connected") {
     if (isSpeaking) {
-      return (
-        <p className="text-xl text-green-600 mt-3" style={{ animation: "speaking-pulse 1.5s ease-in-out infinite" }}>
-          🗣️ Sta parlando...
-        </p>
-      );
+      return <p className="text-xl text-green-600 mt-2">🗣️ Sta parlando...</p>;
     }
     if (isListening) {
-      return (
-        <p className="text-xl text-blue-600 mt-3">
-          👂 Ti sta ascoltando...
-        </p>
-      );
+      return <p className="text-xl text-blue-600 mt-2">👂 Ti ascolta...</p>;
     }
-    return (
-      <p className="text-xl text-green-600 mt-3">
-        ✅ Connesso
-      </p>
-    );
+    return <p className="text-xl text-green-600 mt-2">✅ In linea</p>;
   }
   return null;
 }
