@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+model Nonno {
+  id            String          @id @default(cuid())
+  nome          String
+  telefono      String?
+  dispositivoId String?
+  compagnoPref  String          @default("bruno")
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  conversazioni Conversazione[]
+  memorie       Memoria[]
+  codici        Codice[]
+}
+
+model Codice {
+  id            String    @id @default(cuid())
+  codice        String    @unique
+  nonnoId       String
+  nonno         Nonno     @relation(fields: [nonnoId], references: [id])
+  telefono      String?
+  usatoIl       DateTime?
+  dispositivoId String?
+  createdAt     DateTime  @default(now())
+}
+
+model Conversazione {
+  id         String      @id @default(cuid())
+  nonnoId    String
+  nonno      Nonno       @relation(fields: [nonnoId], references: [id])
+  compagno   String
+  riassunto  String?
+  iniziataIl DateTime    @default(now())
+  finitaIl   DateTime?
+  messaggi   Messaggio[]
+}
+
+model Messaggio {
+  id              String        @id @default(cuid())
+  conversazioneId String
+  conversazione   Conversazione @relation(fields: [conversazioneId], references: [id])
+  ruolo           String
+  contenuto       String
+  creatoIl        DateTime      @default(now())
+}
+
+model Memoria {
+  id       String   @id @default(cuid())
+  nonnoId  String
+  nonno    Nonno    @relation(fields: [nonnoId], references: [id])
+  tipo     String
+  chiave   String
+  valore   String
+  creatoIl DateTime @default(now())
+
+  @@unique([nonnoId, tipo, chiave])
+}
