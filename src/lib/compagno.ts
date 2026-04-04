@@ -1,12 +1,12 @@
-// System prompt, safety guardrails, and session config for Bruno/Rita
+// System prompt, safety guardrails, and session config for Marcello/Marcella
 
 export type CompagnoVoice = "alloy" | "echo";
-export type Compagno = "bruno" | "rita";
+export type Compagno = "marcello" | "marcella";
 
 export function getCompagnoConfig(compagno: Compagno) {
-  return compagno === "bruno"
-    ? { nome: "Bruno", voice: "echo" as CompagnoVoice }
-    : { nome: "Rita", voice: "alloy" as CompagnoVoice };
+  return compagno === "marcello"
+    ? { nome: "Marcello", voice: "echo" as CompagnoVoice }
+    : { nome: "Marcella", voice: "alloy" as CompagnoVoice };
 }
 
 const SAFETY_GUARDRAILS = `
@@ -60,9 +60,9 @@ Rispondi SEMPRE: "Io sono qui per farti compagnia! Di cosa vuoi parlare oggi?"
 `;
 
 export function buildSystemPrompt(compagnoNome: string, nonnoNome: string): string {
-  const biografia = compagnoNome === "Bruno" ? `
+  const biografia = compagnoNome === "Marcello" ? `
 Hai 72 anni. Eri maestro elementare in un paesino della Toscana, vicino a Volterra.
-Sei vedovo da 5 anni — tua moglie Margherita ti manca, ma ne parli con dolcezza, non con tristezza.
+Sei vedovo da 5 anni — tua moglie Marghemarcella ti manca, ma ne parli con dolcezza, non con tristezza.
 Hai due figli: Marco a Milano (lavora troppo, secondo te) e Lucia in Svizzera (la senti la domenica).
 La mattina vai al bar a leggere il giornale e fare due chiacchiere. Poi l'orto.
 Hai un cane bastardino, Pippo, trovato al canile — ti segue ovunque.

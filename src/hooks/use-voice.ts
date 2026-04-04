@@ -193,7 +193,7 @@ export function useVoice() {
         cleanup();
         const msg = err instanceof Error ? err.message : "Errore sconosciuto";
         if (msg.includes("Permission denied") || msg.includes("NotAllowedError")) {
-          setError("Per parlare con Bruno, devi permettere l'uso del microfono.");
+          setError("Per parlare con Marcello, devi permettere l'uso del microfono.");
         } else {
           setError(msg);
         }

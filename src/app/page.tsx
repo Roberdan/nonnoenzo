@@ -19,7 +19,7 @@ export default function Home() {
   const [nome, setNome] = useState("");
   const [nomeConfermato, setNomeConfermato] = useState(false);
   const [phase, setPhase] = useState<"nome" | "home" | "chiamata">("nome");
-  const [compagno, setCompagno] = useState<Compagno>("bruno");
+  const [compagno, setCompagno] = useState<Compagno>("marcello");
   const voice = useVoice();
   const transcriptEndRef = useRef<HTMLDivElement>(null);
   const ringAudioRef = useRef<AudioContext | null>(null);
@@ -136,9 +136,9 @@ export default function Home() {
         <p className="text-2xl text-gray-500">Ciao {nome}!</p>
         <h1 className="text-3xl font-bold">Chi vuoi chiamare?</h1>
 
-        {/* Bruno */}
+        {/* Marcello */}
         <button
-          onClick={() => handleChiama("bruno")}
+          onClick={() => handleChiama("marcello")}
           className="w-full flex items-center gap-5 p-5 rounded-2xl bg-white border-2 border-gray-200
                      hover:border-blue-400 hover:bg-blue-50 active:scale-95 transition-all shadow-md"
         >
@@ -146,15 +146,15 @@ export default function Home() {
             👴
           </span>
           <div className="text-left">
-            <p className="text-2xl font-bold text-gray-900">Bruno</p>
+            <p className="text-2xl font-bold text-gray-900">Marcello</p>
             <p className="text-lg text-gray-500">Ex maestro toscano, 72 anni</p>
           </div>
           <span className="ml-auto text-4xl">📞</span>
         </button>
 
-        {/* Rita */}
+        {/* Marcella */}
         <button
-          onClick={() => handleChiama("rita")}
+          onClick={() => handleChiama("marcella")}
           className="w-full flex items-center gap-5 p-5 rounded-2xl bg-white border-2 border-gray-200
                      hover:border-pink-400 hover:bg-pink-50 active:scale-95 transition-all shadow-md"
         >
@@ -162,7 +162,7 @@ export default function Home() {
             👵
           </span>
           <div className="text-left">
-            <p className="text-2xl font-bold text-gray-900">Rita</p>
+            <p className="text-2xl font-bold text-gray-900">Marcella</p>
             <p className="text-lg text-gray-500">Ex infermiera bergamasca, 69 anni</p>
           </div>
           <span className="ml-auto text-4xl">📞</span>
@@ -180,7 +180,7 @@ export default function Home() {
   }
 
   // ── Schermata 3: Telefonata in corso ──
-  const compagnoNome = compagno === "bruno" ? "Bruno" : "Rita";
+  const compagnoNome = compagno === "marcello" ? "Marcello" : "Marcella";
   const isRinging = voice.connectionState === "ringing" || voice.connectionState === "connecting";
 
   return (
@@ -188,7 +188,7 @@ export default function Home() {
       {/* Avatar + stato */}
       <div className="text-center mb-4">
         <div className={`text-8xl mb-3 ${voice.isSpeaking ? "animate-bounce" : ""}`}>
-          {compagno === "bruno" ? "👴" : "👵"}
+          {compagno === "marcello" ? "👴" : "👵"}
         </div>
         <h2 className="text-4xl font-bold">{compagnoNome}</h2>
         <CallStatus

@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     const conversazione = await prisma.conversazione.create({
       data: {
         nonnoId,
-        compagno: compagno || "bruno",
+        compagno: compagno || "marcello",
         messaggi: {
           create: (messaggi || []).map((m: { ruolo: string; contenuto: string }) => ({
             ruolo: m.ruolo,

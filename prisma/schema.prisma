@@ -13,7 +13,7 @@ model Nonno {
   nome          String
   telefono      String?
   dispositivoId String?
-  compagnoPref  String          @default("bruno")
+  compagnoPref  String          @default("marcello")
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   conversazioni Conversazione[]
