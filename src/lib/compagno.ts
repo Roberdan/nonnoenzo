@@ -105,13 +105,13 @@ export const SESSION_CONFIG = {
   },
   turnDetection: {
     type: "server_vad" as const,
-    threshold: 0.3,
-    prefix_padding_ms: 500,
-    silence_duration_ms: 2000,
+    threshold: 0.7,
+    prefix_padding_ms: 600,
+    silence_duration_ms: 2500,
     create_response: true,
     interrupt_response: false,
   },
-  noiseReduction: "near_field" as const,
+  noiseReduction: "far_field" as const,
 };
 
 export function buildGreeting(compagnoNome: string, nonnoNome: string): string {
